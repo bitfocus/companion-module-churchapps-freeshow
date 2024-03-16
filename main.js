@@ -1,7 +1,26 @@
 const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
-const UpgradeScripts = require('./upgrades')
-const UpdateActions = require('./actions')
-const UpdatePresets = require('./presets')
+const CreateClient = require('./src/connect')
+const UpdateActions = require('./src/actions')
+const UpdatePresets = require('./src/presets')
+
+const configuration = [
+	{
+		type: 'textinput',
+		id: 'host',
+		label: 'Destination IP',
+		width: 8,
+		default: '127.0.0.1',
+		regex: Regex.IP,
+	},
+	{
+		type: 'textinput',
+		id: 'port',
+		label: 'Port',
+		width: 4,
+		default: 5505,
+		regex: Regex.PORT,
+	},
+]
 
 class ModuleInstance extends InstanceBase {
 	constructor(internal) {
@@ -13,46 +32,26 @@ class ModuleInstance extends InstanceBase {
 
 		this.updateStatus(InstanceStatus.Ok)
 
+		this.initWebSocket()
 		this.updateActions()
 		this.updatePresets()
 	}
 
-	// When module gets deleted
 	async destroy() {
-		this.log('debug', 'destroy')
+		this.log('debug', 'Module deleted!')
 	}
 
 	async configUpdated(config) {
 		this.config = config
+
+		this.initWebSocket()
 	}
 
-	getConfigFields() {
-		return [
-			{
-				type: 'textinput',
-				id: 'host',
-				label: 'Destination IP',
-				width: 8,
-				regex: Regex.IP, // localhost
-			},
-			{
-				type: 'textinput',
-				id: 'port',
-				label: 'Port',
-				width: 4,
-				default: 5505,
-				regex: Regex.PORT,
-			},
-		]
-	}
+	getConfigFields = () => configuration
 
-	updateActions() {
-		UpdateActions(this)
-	}
-
-	updatePresets() {
-		UpdatePresets(this)
-	}
+	initWebSocket = () => CreateClient(this)
+	updateActions = () => UpdateActions(this)
+	updatePresets = () => UpdatePresets(this)
 }
 
-runEntrypoint(ModuleInstance, UpgradeScripts)
+runEntrypoint(ModuleInstance, [])

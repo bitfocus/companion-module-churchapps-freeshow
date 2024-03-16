@@ -79,25 +79,37 @@ module.exports = function (self) {
 	let presets = {}
 	Object.keys(presetData).forEach((id) => {
 		let data = presetData[id]
+		let preset = JSON.parse(JSON.stringify(defaultPreset))
 
-		presets[id] = {
-			type: 'button',
-			category: data.category || 'Common',
-			name: data.name || '',
-			style: {
-				text: data.text || data.name || ``,
-				size: 'auto',
-				color: data.color || combineRgb(255, 255, 255),
-				bgcolor: data.bgcolor || combineRgb(0, 0, 0),
-			},
-			steps: [
-				{
-					down: [{ actionId: data.id || id, options: data.options || {} }],
-					up: [],
-				},
-			],
-		}
+		// preset data
+		preset.category = data.category || 'Common'
+		preset.name = data.name || id
+
+		// button style
+		preset.style.text = data.text ?? data.name ?? ''
+		if (data.color) preset.style.color = data.color
+		if (data.bgcolor) preset.style.bgcolor = data.bgcolor
+
+		// action data
+		let actionId = data.id || id
+		let options = data.options || {}
+		preset.steps[0].down = [{ actionId, options }]
+
+		presets[id] = preset
 	})
 
 	self.setPresetDefinitions(presets)
+}
+
+const defaultPreset = {
+	type: 'button',
+	category: '',
+	name: '',
+	style: {
+		text: '',
+		size: 'auto',
+		color: combineRgb(255, 255, 255),
+		bgcolor: combineRgb(0, 0, 0),
+	},
+	steps: [{ down: [], up: [] }],
 }
