@@ -33,10 +33,16 @@ function addListeners(self) {
 
 	// state change
 	self.socket.on('data', (data) => {
-		console.log('Data received:', data)
-		// data = JSON.parse(data)
+		if (data.isVariable) {
+			if (!data.values) return
+			self.setVariableValues(data.values)
 
-		// self.checkVariables();
-		// self.checkFeedbacks();
+			self.variableData = data.values
+			self.checkFeedbacks()
+			return
+		}
+
+		console.log('Data received:', data)
+		self.checkFeedbacks()
 	})
 }

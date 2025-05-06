@@ -3,6 +3,12 @@ const valueInput = { id: 'value', type: 'textinput', label: 'Name' }
 const idInput = { id: 'id', type: 'textinput', label: 'ID', tooltip: 'Check the FreeShow configs to find ids' }
 const volumeInput = { id: 'volume', type: 'number', label: 'Volume', default: 1, min: 0, max: 1, step: 0.1 }
 const gainInput = { id: 'gain', type: 'number', label: 'Gain', default: 0, min: 0, max: 1, step: 0.1 }
+const scriptureInput = {
+	id: 'value',
+	type: 'textinput',
+	label: 'Reference',
+	tooltip: 'To display Genesis 1:1, type: 1.1.1',
+}
 const transitionInputs = [
 	{
 		type: 'dropdown',
@@ -58,6 +64,7 @@ module.exports = function (self) {
 	const actionData = {
 		// PROJECT
 		index_select_project: { name: 'Select project by index', options: [indexInput] },
+		name_select_project: { name: 'Select project by name', options: [valueInput] },
 		next_project_item: { name: 'Next project item' },
 		previous_project_item: { name: 'Previous project item' },
 		index_select_project_item: { name: 'Select project item by index', options: [indexInput] },
@@ -70,12 +77,7 @@ module.exports = function (self) {
 		previous_slide: { name: 'Previous slide' },
 		index_select_slide: { name: 'Select slide by index', options: [indexInput] },
 		name_select_slide: { name: 'Select slide by name', options: [valueInput] },
-		lock_output: { name: 'Toggle output lock' },
-		toggle_output_windows: { name: 'Toggle output windows' },
 		id_select_group: { name: 'Select slide group by ID', options: [idInput] },
-
-		// STAGE
-		id_select_stage_layout: { name: 'Select stage layout by ID', options: [idInput] },
 
 		// CLEAR
 		restore_output: { name: 'Restore output' },
@@ -90,20 +92,55 @@ module.exports = function (self) {
 		index_select_overlay: { name: 'Toggle overlay by index', options: [indexInput] },
 		name_select_overlay: { name: 'Toggle overlay by name', options: [valueInput] },
 
-		// AUDIO
-		change_volume: { name: 'Change audio volume', options: [volumeInput, gainInput] },
+		// SCRIPTURE
+		start_scripture: { name: 'Start scripture from reference', options: [scriptureInput] },
+		scripture_next: { name: 'Next scripture verse' },
+		scripture_previous: { name: 'Previous scripture verse' },
 
-		// VISUAL
+		// OUTPUT
+		lock_output: { name: 'Toggle output lock' },
+		toggle_output_windows: { name: 'Toggle output windows' },
 		id_select_output_style: { name: 'Select output style by ID', options: [idInput] },
 		change_transition: { name: 'Change transition', options: transitionInputs },
 
-		// OTHER
+		// STAGE
+		id_select_stage_layout: { name: 'Select stage layout by ID', options: [idInput] },
+
+		// AUDIO
+		change_volume: { name: 'Change audio volume', options: [volumeInput, gainInput] },
+		name_start_playlist: { name: 'Start playlist by name', options: [valueInput] },
+		playlist_next: { name: 'Next track in playlist' },
+
+		// TIMERS
+		name_start_timer: { name: 'Start timer by name', options: [valueInput] },
+		pause_timers: { name: 'Pause active timers' },
+		stop_timers: { name: 'Stop active timers' },
+
+		// FUNCTIONS
 		change_variable: { name: 'Change variable', options: variableInputs },
+
+		// ACTION
+		name_run_action: { name: 'Run action by name', description: 'Run an action from its name', options: [valueInput] },
+		run_action: { name: 'Run action by ID', description: 'Run an action from its ID', options: [idInput] },
+
+		// OTHER
 		custom_message: {
 			name: 'Custom API message',
+			description: 'Send a custom API to FreeShow message that is not added specifically to Companion',
 			options: [
 				{ id: 'id', type: 'textinput', label: 'API ID' },
-				{ ...valueInput, tooltip: 'Format as stringified JSON. E.g: {"value": "hi"}' },
+				{ ...valueInput, label: 'JSON Value', tooltip: 'Format as stringified JSON. E.g: {"value": "hi"}' },
+			],
+		},
+
+		// custom variable internally used by the module (any text in value input can be replaced by this)
+		set_self_variable: {
+			name: 'Custom variable (internal)',
+			description:
+				'Only used internally in this module. The set value can be referenced in any "value" field using the $(name) format.',
+			options: [
+				{ id: 'key', type: 'textinput', label: 'Variable name' },
+				{ id: 'value', type: 'textinput', label: 'Variable value' },
 			],
 		},
 	}
@@ -133,11 +170,25 @@ module.exports = function (self) {
 		let action = event.actionId
 		let data = { ...event.options, action }
 
+		if (action === 'set_self_variable') {
+			if (!data.key) return
+			self.internalVariable[data.key] = data.value
+			self.checkFeedbacks()
+			return
+		}
+
 		// custom message
 		if (action === 'custom_message') {
 			action = data.id
 			data = { ...JSON.parse(data.value || '{}'), action }
 		}
+
+		// parse custom variable values
+		if (data.value?.includes('$(')) {
+			data.value = replaceVariables(data.value, self.internalVariable)
+		}
+
+		if (action === 'start_scripture') data.reference = data.value
 
 		// log action
 		let options = Object.keys(event.options).length ? ` + ${JSON.stringify(event.options)}` : ''
@@ -145,4 +196,10 @@ module.exports = function (self) {
 
 		self.send(data)
 	}
+}
+
+function replaceVariables(template, values) {
+	return template.replace(/\$\(([^)]+)\)/g, (match, varName) => {
+		return values.hasOwnProperty(varName) ? values[varName] : match
+	})
 }

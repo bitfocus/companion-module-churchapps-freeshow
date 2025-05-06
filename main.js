@@ -1,7 +1,9 @@
 const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
 const CreateClient = require('./src/connect')
-const UpdateActions = require('./src/actions')
-const UpdatePresets = require('./src/presets')
+const InitActions = require('./src/actions')
+const InitPresets = require('./src/presets')
+const { InitVariables, StopUpdatingVariables } = require('./src/variables')
+const InitFeedback = require('./src/feedback')
 
 const configuration = [
 	{
@@ -33,25 +35,31 @@ class ModuleInstance extends InstanceBase {
 		this.updateStatus(InstanceStatus.Ok)
 
 		this.initWebSocket()
-		this.updateActions()
-		this.updatePresets()
+		this.initActions()
+		this.initPresets()
+		this.initVariables()
+		this.initFeedback()
+
+		this.internalVariable = {}
 	}
 
 	async destroy() {
 		this.log('debug', 'Module deleted!')
+		StopUpdatingVariables()
 	}
 
 	async configUpdated(config) {
 		this.config = config
-
 		this.initWebSocket()
 	}
 
 	getConfigFields = () => configuration
-
 	initWebSocket = () => CreateClient(this)
-	updateActions = () => UpdateActions(this)
-	updatePresets = () => UpdatePresets(this)
+
+	initActions = () => InitActions(this)
+	initPresets = () => InitPresets(this)
+	initVariables = () => InitVariables(this)
+	initFeedback = () => InitFeedback(this)
 }
 
 runEntrypoint(ModuleInstance, [])

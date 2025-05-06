@@ -1,37 +1,44 @@
 const { combineRgb } = require('@companion-module/base')
 
+const WhiteColor = combineRgb(255, 255, 255)
+const BlackColor = combineRgb(0, 0, 0)
+const GreenColor = combineRgb(5, 115, 50)
+const BlueColor = combineRgb(0, 25, 60)
+const RedColor = combineRgb(100, 8, 8)
+
 module.exports = function (self) {
 	const presetData = {
 		// COMMON
 		previous_slide: {
 			name: 'Previous slide',
 			text: '❮',
-			bgcolor: combineRgb(5, 115, 50),
+			bgcolor: GreenColor,
 		},
 		next_slide: {
 			name: 'Next slide',
 			text: '❯',
-			bgcolor: combineRgb(5, 115, 50),
+			bgcolor: GreenColor,
 		},
 		next_project_item: {
 			name: 'Next project item',
 			text: '⬇️',
-			bgcolor: combineRgb(0, 25, 60),
+			bgcolor: BlueColor,
 		},
 		previous_project_item: {
 			name: 'Previous project item',
 			text: '⬆️',
-			bgcolor: combineRgb(0, 25, 60),
+			bgcolor: BlueColor,
 		},
 		clear_all: {
 			name: 'Clear all',
 			text: '✖',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
+			feedback: { id: 'layer_active', options: { layer: 'any' } },
 		},
 		lock_output: {
 			name: 'Toggle output lock',
 			text: '🔒',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
 		},
 
 		// CLEAR
@@ -39,33 +46,38 @@ module.exports = function (self) {
 			category: 'Clear',
 			id: 'clear_all',
 			name: 'Clear All',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
+			feedback: { id: 'layer_active', options: { layer: 'any' } },
 		},
 		clear_background: {
 			category: 'Clear',
 			name: 'Clear Background',
 			text: 'Clear BG',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
+			feedback: { id: 'layer_active', options: { layer: 'background' } },
 		},
 		clear_slide: {
 			category: 'Clear',
 			name: 'Clear Slide',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
+			feedback: { id: 'layer_active', options: { layer: 'slide' } },
 		},
 		clear_overlays: {
 			category: 'Clear',
 			name: 'Clear Overlays',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
+			feedback: { id: 'layer_active', options: { layer: 'overlays' } },
 		},
 		clear_audio: {
 			category: 'Clear',
 			name: 'Clear Audio',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
+			feedback: { id: 'layer_active', options: { layer: 'audio' } },
 		},
 		clear_next_timer: {
 			category: 'Clear',
 			name: 'Clear Next slide timer',
-			bgcolor: combineRgb(100, 8, 8),
+			bgcolor: RedColor,
 		},
 	}
 
@@ -133,6 +145,78 @@ module.exports = function (self) {
 		}
 	}
 
+	// prettier-ignore
+	const BIBLE_BOOKS = [
+		'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel', '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra', 'Nehemiah', 'Esther', 'Job', 'Psalms', 'Proverbs', 'Ecclesiastes', 'Song of Solomon', 'Isaiah', 'Jeremiah', 'Lamentations', 'Ezekiel', 'Daniel', 'Hosea', 'Joel', 'Amos', 'Obadiah', 'Jonah', 'Micah', 'Nahum', 'Habakkuk', 'Zephaniah', 'Haggai', 'Zechariah', 'Malachi',
+		'Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation',
+	]
+	const COLORS = [
+		{ index: 0, color: combineRgb(232, 56, 66) },
+		{ index: 5, color: combineRgb(232, 127, 66) },
+		{ index: 17, color: combineRgb(181, 56, 232) },
+		{ index: 22, color: combineRgb(66, 192, 77) },
+		{ index: 39, color: combineRgb(66, 176, 232) },
+		{ index: 44, color: combineRgb(232, 172, 66) },
+		{ index: 65, color: combineRgb(232, 56, 229) },
+	]
+	// GENERATE BIBLE BOOKS
+	for (let i = 0; i < Object.keys(BIBLE_BOOKS).length; i++) {
+		const bookName = BIBLE_BOOKS[i]
+		const bookColor = JSON.parse(JSON.stringify(COLORS))
+			.reverse()
+			.find((a) => a.index <= i)?.color
+		const bookId = bookName.toLowerCase().replaceAll(' ', '_')
+		const options = { key: 'bible_book', value: (i + 1).toString() }
+
+		presetData['bible_book_' + bookId] = {
+			category: 'Bible books',
+			id: 'set_self_variable',
+			name: `Select a Bible book`,
+			text: bookName,
+			bgcolor: bookColor,
+			options,
+			feedback: { id: 'internal_variable', options },
+			extraActions: [
+				{ actionId: 'set_self_variable', options: { key: 'bible_chapter', value: '' } },
+				{ actionId: 'set_self_variable', options: { key: 'bible_verse', value: '' } },
+			],
+		}
+	}
+
+	// GENERATE BIBLE CHAPTERS
+	// second most is Isaiah with 66 chapters
+	for (let i = 0; i < 150; i++) {
+		const chapterName = (i + 1).toString()
+		const options = { key: 'bible_chapter', value: chapterName }
+
+		presetData['bible_chapter_' + i] = {
+			category: 'Bible chapters',
+			id: 'set_self_variable',
+			name: `Select a Bible chapter`,
+			text: chapterName,
+			options,
+			feedback: { id: 'internal_variable', options },
+			extraActions: [{ actionId: 'set_self_variable', options: { key: 'bible_verse', value: '' } }],
+		}
+	}
+
+	// GENERATE BIBLE VERSES
+	// second most is Number 7 with 89 verses
+	for (let i = 0; i < 176; i++) {
+		const verseName = (i + 1).toString()
+		const options = { key: 'bible_verse', value: verseName }
+
+		presetData['bible_verse_' + i] = {
+			category: 'Bible verses',
+			id: 'start_scripture',
+			name: `Select a Bible verse`,
+			text: verseName,
+			options: { value: '$(bible_book).$(bible_chapter).' + verseName },
+			feedback: { id: 'internal_variable', options },
+			extraActions: [{ actionId: 'set_self_variable', options }],
+		}
+	}
+
 	let presets = {}
 	Object.keys(presetData).forEach((id) => {
 		let data = presetData[id]
@@ -152,6 +236,22 @@ module.exports = function (self) {
 		let options = data.options || {}
 		preset.steps[0].down = [{ actionId, options }]
 
+		// feedback
+		if (data.feedback) {
+			data.feedback.feedbackId = data.feedback.id
+			delete data.feedback.id
+			if (!data.feedback.style) {
+				data.feedback.style = {
+					color: WhiteColor,
+					bgcolor: GreenColor,
+				}
+			}
+			preset.feedbacks = [data.feedback]
+		}
+
+		// extra actions
+		if (data.extraActions) preset.steps[0].down.push(...data.extraActions)
+
 		presets[id] = preset
 	})
 
@@ -165,8 +265,8 @@ const defaultPreset = {
 	style: {
 		text: '',
 		size: 'auto',
-		color: combineRgb(255, 255, 255),
-		bgcolor: combineRgb(0, 0, 0),
+		color: WhiteColor,
+		bgcolor: BlackColor,
 	},
 	steps: [{ down: [], up: [] }],
 }
