@@ -3,11 +3,6 @@ const { combineRgb } = require('@companion-module/base')
 const WhiteColor = combineRgb(255, 255, 255)
 const GreenColor = combineRgb(5, 115, 50)
 
-// TODO:
-// variable/dynamic value is value
-// output style with name X set in output with name Y
-// show with name X active
-
 module.exports = function (self) {
 	const feedbacks = {
 		layer_active: {
@@ -38,6 +33,28 @@ module.exports = function (self) {
 				const layer = feedback.options.layer
 				if (layer === 'any') return !!layers.length
 				return layers.includes(layer)
+			},
+		},
+		style_active: {
+			type: 'boolean',
+			name: 'Style is active',
+			description: 'If a specific output style is used in an output',
+			defaultStyle: {
+				color: WhiteColor,
+				bgcolor: GreenColor,
+			},
+			options: [
+				{
+					type: 'textinput',
+					label: 'Style name',
+					id: 'name',
+				},
+			],
+			callback: (feedback) => {
+				const formatName = (name) => name.toLowerCase()
+				return !!(self.variableData?.active_styles || '')
+					.split(', ')
+					.find((name) => formatName(name) === formatName(feedback.options.name))
 			},
 		},
 		slide_number: {

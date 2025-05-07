@@ -3,6 +3,7 @@ const valueInput = { id: 'value', type: 'textinput', label: 'Name' }
 const idInput = { id: 'id', type: 'textinput', label: 'ID', tooltip: 'Check the FreeShow configs to find ids' }
 const volumeInput = { id: 'volume', type: 'number', label: 'Volume', default: 1, min: 0, max: 1, step: 0.1 }
 const gainInput = { id: 'gain', type: 'number', label: 'Gain', default: 0, min: 0, max: 1, step: 0.1 }
+const seekInput = { id: 'seconds', type: 'number', label: 'Seek to seconds', default: 0, min: 0 }
 const scriptureInput = {
 	id: 'value',
 	type: 'textinput',
@@ -88,6 +89,9 @@ module.exports = function (self) {
 		clear_audio: { name: 'Clear audio' },
 		clear_next_timer: { name: 'Clear next slide timer' },
 
+		// MEDIA
+		video_seekto: { name: 'Video seek to time', options: [seekInput] },
+
 		// OVERLAYS
 		index_select_overlay: { name: 'Toggle overlay by index', options: [indexInput] },
 		name_select_overlay: { name: 'Toggle overlay by name', options: [valueInput] },
@@ -107,6 +111,7 @@ module.exports = function (self) {
 		id_select_stage_layout: { name: 'Select stage layout by ID', options: [idInput] },
 
 		// AUDIO
+		audio_seekto: { name: 'Audio seek to time', options: [seekInput] },
 		change_volume: { name: 'Change audio volume', options: [volumeInput, gainInput] },
 		name_start_playlist: { name: 'Start playlist by name', options: [valueInput] },
 		playlist_next: { name: 'Next track in playlist' },
@@ -115,6 +120,7 @@ module.exports = function (self) {
 		name_start_timer: { name: 'Start timer by name', options: [valueInput] },
 		pause_timers: { name: 'Pause active timers' },
 		stop_timers: { name: 'Stop active timers' },
+		timer_seekto: { name: 'Timer seek to time', options: [seekInput] },
 
 		// FUNCTIONS
 		change_variable: { name: 'Change variable', options: variableInputs },

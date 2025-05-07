@@ -34,13 +34,14 @@ class ModuleInstance extends InstanceBase {
 
 		this.updateStatus(InstanceStatus.Ok)
 
+		this.initializedVariables = []
+		this.internalVariable = {}
+
 		this.initWebSocket()
 		this.initActions()
 		this.initPresets()
 		this.initVariables()
 		this.initFeedback()
-
-		this.internalVariable = {}
 	}
 
 	async destroy() {

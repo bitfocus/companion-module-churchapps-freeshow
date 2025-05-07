@@ -1,10 +1,10 @@
-// TODO:
-// get actual variables values
-// get timer values
-
 let variableUpdater
 function InitVariables(self) {
+	const internalVariables = ['connection_status']
 	const variables = {
+		// internal
+		connection_status: { description: 'Connection status', default: 'Disconnected' },
+
 		// show
 		show_name: { description: 'Show name' },
 		show_name_next: { description: 'Next show name' },
@@ -28,10 +28,17 @@ function InitVariables(self) {
 
 		// audio
 		audio_title: { description: 'Playing audio title' },
+		audio_time: { description: 'Playing audio time', default: '00:00' },
+		audio_countdown: { description: 'Playing audio time remaining', default: '00:00' },
+		audio_duration: { description: 'Playing audio length', default: '00:00' },
 		audio_volume: { description: 'Audio volume' },
+
+		// timer
+		timer_status: { description: 'Timer status (playing/paused/stopped)', default: 'Stopped' },
 
 		// custom
 		active_layers: { description: 'Active output layers' },
+		active_styles: { description: 'Active output styles' },
 	}
 
 	const variableList = Object.entries(variables).map(([id, value]) => ({
@@ -39,18 +46,20 @@ function InitVariables(self) {
 		name: value.description || '',
 	}))
 	self.setVariableDefinitions(variableList)
+	self.initializedVariables = variableList
 
 	// set defaults
 	const defaultVariableValues = {}
 	Object.entries(variables).forEach(([id, value]) => {
 		// if (!value.default) return
-		defaultVariableValues[id] = value.default || ''
+		defaultVariableValues[id] = value.default ?? 'N/A'
 	})
 	self.setVariableValues(defaultVariableValues)
 
 	// update variables every second
 	variableUpdater = setInterval(() => {
-		self.socket.emit('data', JSON.stringify({ isVariable: true, keys: Object.keys(variables) }))
+		const data = { isVariable: true, keys: Object.keys(variables).filter((a) => !internalVariables.includes(a)) }
+		self.socket?.emit('data', JSON.stringify(data))
 	}, 1000)
 }
 
