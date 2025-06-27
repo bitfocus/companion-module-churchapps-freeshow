@@ -45,6 +45,38 @@ const variableName = {
 	label: 'Variable name',
 	tooltip: 'The name of the variable that should be changed',
 }
+
+// Static variable inputs for now - will be dynamically updated later
+const dynamicVariableInputs = [
+	{
+		id: 'name',
+		type: 'dropdown',
+		label: 'Variable name',
+		default: '',
+		choices: [], // Will be populated dynamically
+		tooltip: 'Select a variable from FreeShow',
+	},
+	{ 
+		id: 'variableValue', 
+		type: 'textinput', 
+		label: 'Variable Value',
+		tooltip: 'Value to set for the selected variable. Supports Companion variables like $(custom:seconds)',
+		useVariables: true  // This tells Companion to parse variables in this field
+	},
+	{
+		type: 'dropdown',
+		label: 'Number Action',
+		id: 'variableAction',
+		default: '',
+		tooltip: 'Action to perform (only applies to number variables)',
+		choices: [
+			{ id: '', label: 'Set Value' },
+			{ id: 'increment', label: 'Increment' },
+			{ id: 'decrement', label: 'Decrement' },
+		],
+	},
+]
+
 const variableInputs = [
 	variableName,
 	{ id: 'value', type: 'textinput', label: 'Value', tooltip: 'Keep empty to toggle on/off' },
@@ -123,7 +155,7 @@ module.exports = function (self) {
 		timer_seekto: { name: 'Timer seek to time', options: [seekInput] },
 
 		// FUNCTIONS
-		change_variable: { name: 'Change variable', options: variableInputs },
+		change_variable: { name: 'Change variable', options: dynamicVariableInputs },
 
 		// ACTION
 		name_run_action: { name: 'Run action by name', description: 'Run an action from its name', options: [valueInput] },
@@ -135,7 +167,8 @@ module.exports = function (self) {
 			description: 'Send a custom API to FreeShow message that is not added specifically to Companion',
 			options: [
 				{ id: 'id', type: 'textinput', label: 'API ID' },
-				{ ...valueInput, label: 'JSON Value', tooltip: 'Format as stringified JSON. E.g: {"value": "hi"}' },
+				{ ...valueInput, label: 'JSON Value', tooltip: 'Format as stringified JSON. E.g: {"value": "hi"}', useVariables: true},
+				
 			],
 		},
 
@@ -157,15 +190,41 @@ module.exports = function (self) {
 		let action = data
 
 		if (!action.options) action.options = []
-		action.callback = (event) => trigger(event)
+		action.callback = async (event) => await trigger(event)
 
 		actions[id] = action
 	})
 
 	self.setActionDefinitions(actions)
 
+	// Method to update variable choices when available
+	self.updateVariableChoices = function() {
+		if (self.getVariableChoices) {
+			// Update the choices in the dynamicVariableInputs
+			const variableChoices = self.getVariableChoices()
+			dynamicVariableInputs[0].choices = variableChoices
+			
+			// Update the action definition
+			actionData.change_variable.options = [...dynamicVariableInputs]
+			
+			// Rebuild actions object
+			let updatedActions = {}
+			Object.keys(actionData).forEach((id) => {
+				let data = actionData[id]
+				let action = data
+
+				if (!action.options) action.options = []
+				action.callback = async (event) => await trigger(event)
+
+				updatedActions[id] = action
+			})
+			
+			self.setActionDefinitions(updatedActions)
+		}
+	}
+
 	// BUTTON PRESS
-	function trigger(event) {
+	async function trigger(event) {
 		let config = self.config
 		if (!config.host || !config.port) return
 
@@ -185,20 +244,87 @@ module.exports = function (self) {
 
 		// custom message
 		if (action === 'custom_message') {
+			// Parse variables in the JSON value before parsing JSON
+			let jsonValue = data.value || '{}'
+			self.log('debug', `Original JSON value: ${jsonValue}`)
+			
+			if (jsonValue.includes('$(')) {
+				const isCompanionVariable = jsonValue.match(/\$\((custom|internal|this):/);
+				self.log('debug', `JSON contains Companion variable: ${!!isCompanionVariable}`)
+				
+				if (isCompanionVariable) {
+					// Parse Companion variables
+					try {
+						jsonValue = await self.parseVariablesInString(jsonValue)
+						self.log('debug', `After parsing Companion variables: ${jsonValue}`)
+					} catch (error) {
+						self.log('error', `Error parsing Companion variables in JSON: ${error.message}`)
+					}
+				} else {
+					// Parse FreeShow internal variables
+					jsonValue = replaceVariables(jsonValue, self.internalVariable)
+					self.log('debug', `After parsing FreeShow variables: ${jsonValue}`)
+				}
+			}
+			
 			action = data.id
-			data = { ...JSON.parse(data.value || '{}'), action }
+			try {
+				data = { ...JSON.parse(jsonValue), action }
+			} catch (error) {
+				self.log('error', `Invalid JSON in custom message: ${error.message}`)
+				return // Don't send invalid JSON
+			}
 		}
 
-		// parse custom variable values
-		if (data.value?.includes('$(')) {
-			data.value = replaceVariables(data.value, self.internalVariable)
+		// Handle change_variable action with type-specific logic
+		if (action === 'change_variable') {
+			// Auto-detect type from FreeShow variable
+			const variableType = self.getVariableType ? self.getVariableType(data.name) : 'text'
+			
+			// Parse variables in the input value
+			let inputValue = data.variableValue || ''
+			self.log('debug', `Original input value: ${inputValue}`)
+			
+			if (inputValue.includes('$(')) {
+				const isCompanionVariable = inputValue.match(/\$\((custom|internal|this):/);
+				self.log('debug', `Is Companion variable: ${!!isCompanionVariable}`)
+				
+				if (isCompanionVariable) {
+					// Parse Companion variables using the correct method
+					try {
+						inputValue = await self.parseVariablesInString(inputValue)
+						self.log('debug', `After parseVariablesInString: ${inputValue}`)
+					} catch (error) {
+						self.log('error', `Error parsing variables: ${error.message}`)
+					}
+				} else {
+					// Parse FreeShow internal variables
+					inputValue = replaceVariables(inputValue, self.internalVariable)
+					self.log('debug', `After FreeShow variable replacement: ${inputValue}`)
+				}
+			}
+			
+			// Map variableValue to the correct key/value structure based on detected type
+			if (variableType === 'text') {
+				// For text variables, set key="text" and value=variableValue
+				data.key = 'text'
+				data.value = inputValue
+				delete data.variableAction  // Remove number action for text variables
+			} else if (variableType === 'number') {
+				// For number variables, set key="value" and value=variableValue
+				data.key = 'value'
+				data.value = inputValue
+				// Keep variableAction for number variables
+			}
+			
+			// Clean up the input field
+			delete data.variableValue
 		}
 
 		if (action === 'start_scripture') data.reference = data.value
 
-		// log action
-		let options = Object.keys(event.options).length ? ` + ${JSON.stringify(event.options)}` : ''
-		console.log(`Sending action: ${action}${options}`)
+		// Log the final data being sent to FreeShow using Companion's logger
+		self.log('info', `Sending to FreeShow: ${JSON.stringify(data, null, 2)}`)
 
 		self.send(data)
 	}

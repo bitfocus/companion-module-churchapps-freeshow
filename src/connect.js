@@ -28,15 +28,27 @@ function addListeners(self) {
 		self.log('info', 'Connected to FreeShow!')
 		self.setVariableValues({ connection_status: 'Connected' })
 		// self.checkVariables();
+		
+		// Fetch available variables after connecting
+		setTimeout(() => {
+			self.fetchVariables()
+		}, 1000) // Small delay to ensure connection is stable
 	})
 	self.socket.on('disconnect', () => {
 		self.setVariableValues({ connection_status: 'Disconnected' })
 		self.log('error', 'Lost connection.')
+		self.availableVariables = [] // Clear cached variables
 	})
 	self.socket.on('error', (err) => self.log('error', `Error message from server: ${err}`))
 
 	// state change
 	self.socket.on('data', (data) => {
+		self.log('debug', `📥 RAW WebSocket Data Received: ${JSON.stringify(data, null, 2)}`)
+		if (data.action === 'get_variables' && data.data) {
+			// This will be handled by the promise in fetchVariables()
+			return
+		}
+		
 		if (data.isVariable) {
 			if (!data.values) return
 			// console.log(data.values)
