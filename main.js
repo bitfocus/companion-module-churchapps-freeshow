@@ -9,6 +9,7 @@ class ModuleInstance extends InstanceBase {
 	constructor(internal) {
 		super(internal)
 		this.availableVariables = [] // Cache for FreeShow variables
+		this.availableTimers = [] // Cache for FreeShow timers
 	}
 
 	async init(config) {
@@ -111,11 +112,48 @@ class ModuleInstance extends InstanceBase {
 		})
 	}
 
+	// Fetch timers from FreeShow
+	async fetchTimers() {
+		if (!this.socket || !this.socket.connected) {
+			this.log('warn', 'Cannot fetch timers - not connected to FreeShow')
+			return
+		}
+
+		return new Promise((resolve) => {
+			// Set up a one-time listener for the response
+			const responseHandler = (data) => {
+				if (data.action === 'get_timers' && data.data) {
+					this.availableTimers = data.data
+					this.log('info', `Loaded ${data.data.length} timers from FreeShow`)
+					this.updateActionDefinitions()
+					this.socket.off('data', responseHandler)
+					resolve(data.data)
+				}
+			}
+
+			this.socket.on('data', responseHandler)
+			
+			// Send the request
+			this.send({ action: 'get_timers' })
+
+			// Timeout after 5 seconds
+			setTimeout(() => {
+				this.log('warn', 'Timeout waiting for get_timers response')
+				this.socket.off('data', responseHandler)
+				resolve([])
+			}, 5000)
+		})
+	}
+
 	// Update action definitions with current variable choices
 	updateActionDefinitions() {
 		// Update variable choices if the method exists
 		if (this.updateVariableChoices) {
 			this.updateVariableChoices()
+		}
+		// Update timer choices if the method exists
+		if (this.updateTimerChoices) {
+			this.updateTimerChoices()
 		}
 	}
 
@@ -131,6 +169,31 @@ class ModuleInstance extends InstanceBase {
 	getVariableType(name) {
 		const variable = this.availableVariables.find(v => v.name === name)
 		return variable ? variable.type : 'text'
+	}
+
+	// Get timer choices for dropdown (counter timers only)
+	getCounterTimerChoices() {
+		return this.availableTimers
+			.filter(timer => timer.type === 'counter')
+			.map(timer => ({
+				id: timer.name,
+				label: timer.name
+			}))
+	}
+
+	// Get timer choices for dropdown (clock timers only)
+	getClockTimerChoices() {
+		return this.availableTimers
+			.filter(timer => timer.type === 'clock')
+			.map(timer => ({
+				id: timer.name,
+				label: timer.name
+			}))
+	}
+
+	// Get timer by name
+	getTimerByName(name) {
+		return this.availableTimers.find(t => t.name === name)
 	}
 }
 

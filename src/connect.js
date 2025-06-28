@@ -20,35 +20,44 @@ module.exports = function (self) {
 	// receiver
 	addListeners(self)
 	// sender
-	self.send = (data) => self.socket.emit('data', JSON.stringify(data))
+	self.send = (data) => {
+		const jsonData = JSON.stringify(data)
+		self.log('debug', `📤 RAW WebSocket Data Sent: ${jsonData}`)
+		self.socket.emit('data', jsonData)
+	}
 }
 
 function addListeners(self) {
 	self.socket.on('connect', () => {
 		self.log('info', 'Connected to FreeShow!')
 		self.setVariableValues({ connection_status: 'Connected' })
-		// self.checkVariables();
 		
-		// Fetch available variables after connecting
+		// Fetch available variables and timers after connecting
 		setTimeout(() => {
 			self.fetchVariables()
+			self.fetchTimers()
 		}, 1000) // Small delay to ensure connection is stable
 	})
+	
 	self.socket.on('disconnect', () => {
 		self.setVariableValues({ connection_status: 'Disconnected' })
 		self.log('error', 'Lost connection.')
 		self.availableVariables = [] // Clear cached variables
+		self.availableTimers = [] // Clear cached timers
 	})
+	
 	self.socket.on('error', (err) => self.log('error', `Error message from server: ${err}`))
 
 	// state change
 	self.socket.on('data', (data) => {
 		self.log('debug', `📥 RAW WebSocket Data Received: ${JSON.stringify(data, null, 2)}`)
-		if (data.action === 'get_variables' && data.data) {
-			// This will be handled by the promise in fetchVariables()
+		
+		// Handle get_variables and get_timers response
+		if ((data.action === 'get_variables' || data.action === 'get_timers') && data.data) {
+			// This will be handled by the promise in fetchVariables() or fetchTimers()
 			return
 		}
-		
+
 		if (data.isVariable) {
 			if (!data.values) return
 			// console.log(data.values)
