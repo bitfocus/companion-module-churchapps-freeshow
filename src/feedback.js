@@ -2,6 +2,17 @@ const { combineRgb } = require('@companion-module/base')
 
 const WhiteColor = combineRgb(255, 255, 255)
 const GreenColor = combineRgb(5, 115, 50)
+const parseBoolean = (value) => {
+	if (typeof value === 'boolean') return value
+	if (typeof value === 'number') return value !== 0
+	if (typeof value === 'string') {
+		const lowered = value.trim().toLowerCase()
+		if (lowered === 'true' || lowered === '1' || lowered === 'enabled' || lowered === 'on') {
+			return true
+		}
+	}
+	return false
+}
 
 module.exports = function (self) {
 	const feedbacks = {
@@ -104,6 +115,22 @@ module.exports = function (self) {
 				if (self.internalVariable?.[feedback.options.key] === undefined) return false
 				return self.internalVariable?.[feedback.options.key] === feedback.options.value
 			},
+		},
+		log_song_usage_enabled: {
+			type: 'boolean',
+			name: 'Log song usage enabled',
+			description: 'If FreeShow is logging song usage',
+			defaultStyle: {
+				color: WhiteColor,
+				bgcolor: GreenColor,
+			},
+			options: [],
+			callback: () =>
+				parseBoolean(
+					self.variableData?.log_song_usage !== undefined
+						? self.variableData?.log_song_usage
+						: self.variableData?.logSongUsage
+				),
 		},
 	}
 

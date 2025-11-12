@@ -60,6 +60,19 @@ const variableInputs = [
 		],
 	},
 ]
+const toggleLogSongUsageOptions = [
+	{
+		type: 'dropdown',
+		label: 'Mode',
+		id: 'mode',
+		default: 'toggle',
+		choices: [
+			{ id: 'toggle', label: 'Toggle' },
+			{ id: 'enable', label: 'Enable' },
+			{ id: 'disable', label: 'Disable' },
+		],
+	},
+]
 
 module.exports = function (self) {
 	const actionData = {
@@ -106,6 +119,11 @@ module.exports = function (self) {
 		toggle_output_windows: { name: 'Toggle output windows' },
 		id_select_output_style: { name: 'Select output style by ID', options: [idInput] },
 		change_transition: { name: 'Change transition', options: transitionInputs },
+		toggle_log_song_usage: {
+			name: 'Log song usage toggle',
+			description: 'Enable, disable or toggle logging of song usage',
+			options: toggleLogSongUsageOptions,
+		},
 
 		// STAGE
 		id_select_stage_layout: { name: 'Select stage layout by ID', options: [idInput] },
@@ -192,6 +210,20 @@ module.exports = function (self) {
 		// parse custom variable values
 		if (data.value?.includes('$(')) {
 			data.value = replaceVariables(data.value, self.internalVariable)
+		}
+
+		if (action === 'toggle_log_song_usage') {
+			switch (data.mode) {
+				case 'enable':
+					data.value = true
+					break
+				case 'disable':
+					data.value = false
+					break
+				default:
+					delete data.value
+			}
+			delete data.mode
 		}
 
 		if (action === 'start_scripture') data.reference = data.value

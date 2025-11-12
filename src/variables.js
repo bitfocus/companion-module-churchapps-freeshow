@@ -39,6 +39,9 @@ function InitVariables(self) {
 		// custom
 		active_layers: { description: 'Active output layers' },
 		active_styles: { description: 'Active output styles' },
+
+		// settings
+		log_song_usage: { description: 'Log song usage enabled', default: 'false', requestKey: 'logSongUsage' },
 	}
 
 	const variableList = Object.entries(variables).map(([id, value]) => ({
@@ -47,6 +50,9 @@ function InitVariables(self) {
 	}))
 	self.setVariableDefinitions(variableList)
 	self.initializedVariables = variableList
+	self.variableRequestMap = Object.fromEntries(
+		Object.entries(variables).map(([id, value]) => [value.requestKey || id, id])
+	)
 
 	// set defaults
 	const defaultVariableValues = {}
@@ -58,7 +64,11 @@ function InitVariables(self) {
 
 	// update variables every second
 	variableUpdater = setInterval(() => {
-		const data = { isVariable: true, keys: Object.keys(variables).filter((a) => !internalVariables.includes(a)) }
+		const requestKeys = Object.entries(variables)
+			.filter(([id]) => !internalVariables.includes(id))
+			.map(([id, value]) => value.requestKey || id)
+		const uniqueKeys = [...new Set(requestKeys)]
+		const data = { isVariable: true, keys: uniqueKeys }
 		self.socket?.emit('data', JSON.stringify(data))
 	}, 1000)
 }

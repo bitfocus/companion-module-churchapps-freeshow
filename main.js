@@ -36,12 +36,12 @@ class ModuleInstance extends InstanceBase {
 
 		this.initializedVariables = []
 		this.internalVariable = {}
-
+		this.variableData = {}
+		this.initVariables()
+		this.initFeedback()
 		this.initWebSocket()
 		this.initActions()
 		this.initPresets()
-		this.initVariables()
-		this.initFeedback()
 	}
 
 	async destroy() {

@@ -37,8 +37,38 @@ function addListeners(self) {
 
 	// state change
 	self.socket.on('data', (data) => {
+		if (typeof data === 'string') {
+			try {
+				data = JSON.parse(data)
+			} catch (error) {
+				self.log('error', `Failed to parse data message: ${error}`)
+				return
+			}
+		}
 		if (data.isVariable) {
 			if (!data.values) return
+			if (self.variableRequestMap) {
+				Object.entries(self.variableRequestMap).forEach(([requestKey, variableId]) => {
+					if (Object.prototype.hasOwnProperty.call(data.values, requestKey)) {
+						if (variableId !== requestKey && data.values[variableId] === undefined) {
+							data.values[variableId] = data.values[requestKey]
+						}
+						if (variableId !== requestKey) {
+							delete data.values[requestKey]
+						}
+					}
+				})
+			}
+			if (
+				data.values.logSongUsage !== undefined &&
+				data.values.log_song_usage === undefined
+			) {
+				data.values.log_song_usage = data.values.logSongUsage
+				delete data.values.logSongUsage
+			}
+			if (data.values.log_song_usage !== undefined) {
+				data.values.log_song_usage = normalizeLogSongUsageValue(data.values.log_song_usage)
+			}
 			// console.log(data.values)
 
 			let newVariables = []
@@ -59,7 +89,10 @@ function addListeners(self) {
 			}
 			self.setVariableValues(data.values)
 
-			self.variableData = data.values
+			self.variableData = {
+				...(self.variableData || {}),
+				...data.values,
+			}
 			self.checkFeedbacks()
 			return
 		}
@@ -80,5 +113,21 @@ function getNameFromKey(key) {
 	}
 
 	value += key[0].toUpperCase() + key.slice(1).replaceAll('_', ' ')
+	return value
+}
+
+function normalizeLogSongUsageValue(value) {
+	if (typeof value === 'boolean') return value ? 'true' : 'false'
+	if (typeof value === 'number') return value !== 0 ? 'true' : 'false'
+	if (typeof value === 'string') {
+		const trimmed = value.trim()
+		if (trimmed.startsWith('{') && trimmed.endsWith('}') && trimmed.length > 2) {
+			return trimmed.slice(1, -1)
+		}
+		const lowered = trimmed.toLowerCase()
+		if (['true', '1', 'enabled', 'on'].includes(lowered)) return 'true'
+		if (['false', '0', 'disabled', 'off'].includes(lowered)) return 'false'
+		return trimmed
+	}
 	return value
 }
