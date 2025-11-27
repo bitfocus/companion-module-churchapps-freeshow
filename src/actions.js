@@ -60,6 +60,19 @@ const variableInputs = [
 		],
 	},
 ]
+const toggleOptions = [
+	{
+		type: 'dropdown',
+		label: 'Mode',
+		id: 'mode',
+		default: 'toggle',
+		choices: [
+			{ id: 'toggle', label: 'Toggle' },
+			{ id: 'enable', label: 'Enable' },
+			{ id: 'disable', label: 'Disable' },
+		],
+	},
+]
 
 module.exports = function (self) {
 	const actionData = {
@@ -124,6 +137,13 @@ module.exports = function (self) {
 
 		// FUNCTIONS
 		change_variable: { name: 'Change variable', options: variableInputs },
+
+		// OTHER
+		toggle_log_song_usage: {
+			name: 'Toggle log song usage',
+			description: 'Enable, disable or toggle logging of song usage',
+			options: toggleOptions,
+		},
 
 		// ACTION
 		name_run_action: { name: 'Run action by name', description: 'Run an action from its name', options: [valueInput] },
@@ -196,6 +216,9 @@ module.exports = function (self) {
 
 		if (action === 'start_scripture') data.reference = data.value
 
+		// custom
+		if (action === 'toggle_log_song_usage') data = toggle(data)
+
 		// log action
 		let options = Object.keys(event.options).length ? ` + ${JSON.stringify(event.options)}` : ''
 		console.log(`Sending action: ${action}${options}`)
@@ -208,4 +231,20 @@ function replaceVariables(template, values) {
 	return template.replace(/\$\(([^)]+)\)/g, (match, varName) => {
 		return values.hasOwnProperty(varName) ? values[varName] : match
 	})
+}
+
+function toggle(data) {
+	switch (data.mode) {
+		case 'enable':
+			data.value = true
+			break
+		case 'disable':
+			data.value = false
+			break
+		default:
+			delete data.value
+	}
+	delete data.mode
+
+	return data
 }

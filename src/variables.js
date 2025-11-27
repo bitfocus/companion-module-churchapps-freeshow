@@ -39,6 +39,7 @@ function InitVariables(self) {
 		// custom
 		active_layers: { description: 'Active output layers' },
 		active_styles: { description: 'Active output styles' },
+		log_song_usage: { description: 'Log song usage is active' },
 	}
 
 	const variableList = Object.entries(variables).map(([id, value]) => ({

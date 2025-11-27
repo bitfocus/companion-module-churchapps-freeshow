@@ -57,6 +57,18 @@ module.exports = function (self) {
 					.find((name) => formatName(name) === formatName(feedback.options.name))
 			},
 		},
+		log_song_usage_active: {
+			type: 'boolean',
+			name: 'Log song usage is active',
+			description: 'If the "Log song usage to a file" option is active',
+			defaultStyle: {
+				color: WhiteColor,
+				bgcolor: GreenColor,
+			},
+			callback: () => {
+				return self.variableData?.log_song_usage === 'true'
+			},
+		},
 		slide_number: {
 			type: 'boolean',
 			name: 'Slide number',
