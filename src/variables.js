@@ -39,6 +39,7 @@ function InitVariables(self) {
 		// custom
 		active_layers: { description: 'Active output layers' },
 		active_styles: { description: 'Active output styles' },
+		output_windows_active: { description: 'Output windows are active' },
 		log_song_usage: { description: 'Log song usage is active' },
 	}
 

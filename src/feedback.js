@@ -57,6 +57,18 @@ module.exports = function (self) {
 					.find((name) => formatName(name) === formatName(feedback.options.name))
 			},
 		},
+		output_windows_active: {
+			type: 'boolean',
+			name: 'Output windows are active',
+			description: 'If one or more output windows are active',
+			defaultStyle: {
+				color: WhiteColor,
+				bgcolor: GreenColor,
+			},
+			callback: () => {
+				return self.variableData?.output_windows_active === 'true'
+			},
+		},
 		log_song_usage_active: {
 			type: 'boolean',
 			name: 'Log song usage is active',
