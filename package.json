@@ -15,7 +15,7 @@
 		"socket.io-client": "^4.8.1"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^2.3.0"
+		"@companion-module/tools": "^2.6.1"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json"
 }
