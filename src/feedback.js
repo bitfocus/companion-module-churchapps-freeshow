@@ -1,4 +1,5 @@
 const { combineRgb } = require('@companion-module/base')
+const { resolveTimerStatus, isTimerInState } = require('./feedbackHelper')
 
 const WhiteColor = combineRgb(255, 255, 255)
 const GreenColor = combineRgb(5, 115, 50)
@@ -79,6 +80,39 @@ module.exports = function (self) {
 			},
 			callback: () => {
 				return self.variableData?.log_song_usage === 'true'
+			},
+		},
+		timer_active: {
+			type: 'boolean',
+			name: 'Timer is active',
+			description: 'If a specific timer (or any timer) matches a state',
+			defaultStyle: {
+				color: WhiteColor,
+				bgcolor: GreenColor,
+			},
+			options: [
+				{
+					type: 'textinput',
+					label: 'Timer name (leave empty for any active)',
+					id: 'timer',
+					default: '',
+				},
+				{
+					type: 'dropdown',
+					label: 'State',
+					id: 'state',
+					default: 'active',
+					choices: [
+						{ id: 'active', label: 'Active (playing or paused)' },
+						{ id: 'playing', label: 'Playing' },
+						{ id: 'paused', label: 'Paused' },
+						{ id: 'stopped', label: 'Stopped' },
+					],
+				},
+			],
+			callback: (feedback) => {
+				const timerState = resolveTimerStatus(self.variableData, feedback.options.timer)
+				return isTimerInState(timerState, feedback.options.state)
 			},
 		},
 		slide_number: {
