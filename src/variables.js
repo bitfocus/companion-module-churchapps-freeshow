@@ -33,13 +33,24 @@ function InitVariables(self) {
 		audio_duration: { description: 'Playing audio length', default: '00:00' },
 		audio_volume: { description: 'Audio volume' },
 
+		// CUSTOM
+
+		// project
+		active_project_name: { description: 'Active project name' },
+
 		// timer
 		timer_status: { description: 'Timer status (playing/paused/stopped)', default: 'Stopped' },
 
-		// custom
+		// output
 		active_layers: { description: 'Active output layers' },
 		active_styles: { description: 'Active output styles' },
 		output_windows_active: { description: 'Output windows are active' },
+		outputs_locked: { description: 'Outputs are locked' },
+
+		// stage
+		stage_output_layout: { description: 'Stage output layout' },
+
+		// other
 		log_song_usage: { description: 'Log song usage is active' },
 	}
 
