@@ -42,27 +42,30 @@ function addListeners(self) {
 	self.socket.on('data', (data) => {
 		if (data.isVariable) {
 			if (!data.values) return
+
+			// timers with no name causing issues
+			const filteredValues = Object.fromEntries(Object.entries(data.values).filter(([key]) => isNamedTimerKey(key)))
 			// console.log(data.values)
 
 			let newVariables = []
 
 			// set empty to N/A
-			Object.keys(data.values).forEach((key) => {
+			Object.keys(filteredValues).forEach((key) => {
 				// add if it does not exist
 				if (!self.initializedVariables.find((a) => a.variableId === key)) {
 					newVariables.push({ variableId: key, name: getNameFromKey(key) })
 				}
 
-				if (data.values[key] === '') data.values[key] = 'N/A'
+				if (filteredValues[key] === '') filteredValues[key] = 'N/A'
 			})
 
 			if (newVariables.length) {
 				self.initializedVariables.push(...newVariables)
 				self.setVariableDefinitions(self.initializedVariables)
 			}
-			self.setVariableValues(data.values)
+			self.setVariableValues(filteredValues)
 
-			self.variableData = data.values
+			self.variableData = filteredValues
 			self.checkFeedbacks()
 			return
 		}
@@ -72,7 +75,20 @@ function addListeners(self) {
 	})
 }
 
+function isNamedTimerKey(key) {
+	if (!key.startsWith('timer_')) return true
+	if (key === 'timer_status') return true
+
+	const timerName = key
+		.slice(6)
+		.replace(/_status$/, '')
+		.replaceAll('_', '')
+	return timerName.length > 0
+}
+
 function getNameFromKey(key) {
+	if (!key) return ''
+
 	let value = ''
 	if (key.includes('variable_')) {
 		value = 'Variable: '
@@ -81,6 +97,8 @@ function getNameFromKey(key) {
 		value = 'Timer: '
 		key = key.slice(6)
 	}
+
+	if (!key) return value.trim()
 
 	value += key[0].toUpperCase() + key.slice(1).replaceAll('_', ' ')
 	return value
