@@ -4,6 +4,26 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 
 ## Changelog
 
+### [1.1.1] - 2026-08
+
+> FreeShow version >= 1.6.5 recommended
+
+#### Added
+
+- Run action dropdown list
+- 5 new variables
+- 4 new feedbacks, including Timer state
+
+#### Changed
+
+- Tweaked presets
+- Updated packages
+
+#### Fixes
+
+- Fixed connection status
+- Fixed non-string values causing issues
+
 ### [1.1.0] - 2025-05
 
 > Requires FreeShow version 1.4.2
