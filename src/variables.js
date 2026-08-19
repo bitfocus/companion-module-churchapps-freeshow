@@ -58,7 +58,8 @@ function InitVariables(self) {
 		variableId: id,
 		name: value.description || '',
 	}))
-	self.setVariableDefinitions(variableList)
+	const variableDefinitions = Object.fromEntries(variableList.map(({ variableId, name }) => [variableId, { name }]))
+	self.setVariableDefinitions(variableDefinitions)
 	self.initializedVariables = variableList
 
 	// set defaults

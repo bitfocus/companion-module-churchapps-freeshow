@@ -38,7 +38,8 @@ module.exports = function (self) {
 		lock_output: {
 			name: 'Toggle output lock',
 			text: '🔒',
-			bgcolor: RedColor,
+			bgcolor: BlackColor,
+			feedback: { id: 'outputs_locked' },
 		},
 
 		// CLEAR
@@ -145,77 +146,77 @@ module.exports = function (self) {
 		}
 	}
 
-	// prettier-ignore
-	const BIBLE_BOOKS = [
-		'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel', '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra', 'Nehemiah', 'Esther', 'Job', 'Psalms', 'Proverbs', 'Ecclesiastes', 'Song of Solomon', 'Isaiah', 'Jeremiah', 'Lamentations', 'Ezekiel', 'Daniel', 'Hosea', 'Joel', 'Amos', 'Obadiah', 'Jonah', 'Micah', 'Nahum', 'Habakkuk', 'Zephaniah', 'Haggai', 'Zechariah', 'Malachi',
-		'Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation',
-	]
-	const COLORS = [
-		{ index: 0, color: combineRgb(232, 56, 66) },
-		{ index: 5, color: combineRgb(232, 127, 66) },
-		{ index: 17, color: combineRgb(181, 56, 232) },
-		{ index: 22, color: combineRgb(66, 192, 77) },
-		{ index: 39, color: combineRgb(66, 176, 232) },
-		{ index: 44, color: combineRgb(232, 172, 66) },
-		{ index: 65, color: combineRgb(232, 56, 229) },
-	]
-	// GENERATE BIBLE BOOKS
-	for (let i = 0; i < Object.keys(BIBLE_BOOKS).length; i++) {
-		const bookName = BIBLE_BOOKS[i]
-		const bookColor = JSON.parse(JSON.stringify(COLORS))
-			.reverse()
-			.find((a) => a.index <= i)?.color
-		const bookId = bookName.toLowerCase().replaceAll(' ', '_')
-		const options = { key: 'bible_book', value: (i + 1).toString() }
+	// // prettier-ignore
+	// const BIBLE_BOOKS = [
+	// 	'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel', '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra', 'Nehemiah', 'Esther', 'Job', 'Psalms', 'Proverbs', 'Ecclesiastes', 'Song of Solomon', 'Isaiah', 'Jeremiah', 'Lamentations', 'Ezekiel', 'Daniel', 'Hosea', 'Joel', 'Amos', 'Obadiah', 'Jonah', 'Micah', 'Nahum', 'Habakkuk', 'Zephaniah', 'Haggai', 'Zechariah', 'Malachi',
+	// 	'Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation',
+	// ]
+	// const COLORS = [
+	// 	{ index: 0, color: combineRgb(232, 56, 66) },
+	// 	{ index: 5, color: combineRgb(232, 127, 66) },
+	// 	{ index: 17, color: combineRgb(181, 56, 232) },
+	// 	{ index: 22, color: combineRgb(66, 192, 77) },
+	// 	{ index: 39, color: combineRgb(66, 176, 232) },
+	// 	{ index: 44, color: combineRgb(232, 172, 66) },
+	// 	{ index: 65, color: combineRgb(232, 56, 229) },
+	// ]
+	// // GENERATE BIBLE BOOKS
+	// for (let i = 0; i < Object.keys(BIBLE_BOOKS).length; i++) {
+	// 	const bookName = BIBLE_BOOKS[i]
+	// 	const bookColor = JSON.parse(JSON.stringify(COLORS))
+	// 		.reverse()
+	// 		.find((a) => a.index <= i)?.color
+	// 	const bookId = bookName.toLowerCase().replaceAll(' ', '_')
+	// 	const options = { key: 'bible_book', value: (i + 1).toString() }
 
-		presetData['bible_book_' + bookId] = {
-			category: 'Bible books',
-			id: 'set_self_variable',
-			name: `Select a Bible book`,
-			text: bookName,
-			bgcolor: bookColor,
-			options,
-			feedback: { id: 'internal_variable', options },
-			extraActions: [
-				{ actionId: 'set_self_variable', options: { key: 'bible_chapter', value: '' } },
-				{ actionId: 'set_self_variable', options: { key: 'bible_verse', value: '' } },
-			],
-		}
-	}
+	// 	presetData['bible_book_' + bookId] = {
+	// 		category: 'Bible books',
+	// 		id: 'set_self_variable',
+	// 		name: `Select a Bible book`,
+	// 		text: bookName,
+	// 		bgcolor: bookColor,
+	// 		options,
+	// 		feedback: { id: 'internal_variable', options },
+	// 		extraActions: [
+	// 			{ actionId: 'set_self_variable', options: { key: 'bible_chapter', value: '' } },
+	// 			{ actionId: 'set_self_variable', options: { key: 'bible_verse', value: '' } },
+	// 		],
+	// 	}
+	// }
 
-	// GENERATE BIBLE CHAPTERS
-	// second most is Isaiah with 66 chapters
-	for (let i = 0; i < 150; i++) {
-		const chapterName = (i + 1).toString()
-		const options = { key: 'bible_chapter', value: chapterName }
+	// // GENERATE BIBLE CHAPTERS
+	// // second most is Isaiah with 66 chapters
+	// for (let i = 0; i < 150; i++) {
+	// 	const chapterName = (i + 1).toString()
+	// 	const options = { key: 'bible_chapter', value: chapterName }
 
-		presetData['bible_chapter_' + i] = {
-			category: 'Bible chapters',
-			id: 'set_self_variable',
-			name: `Select a Bible chapter`,
-			text: chapterName,
-			options,
-			feedback: { id: 'internal_variable', options },
-			extraActions: [{ actionId: 'set_self_variable', options: { key: 'bible_verse', value: '' } }],
-		}
-	}
+	// 	presetData['bible_chapter_' + i] = {
+	// 		category: 'Bible chapters',
+	// 		id: 'set_self_variable',
+	// 		name: `Select a Bible chapter`,
+	// 		text: chapterName,
+	// 		options,
+	// 		feedback: { id: 'internal_variable', options },
+	// 		extraActions: [{ actionId: 'set_self_variable', options: { key: 'bible_verse', value: '' } }],
+	// 	}
+	// }
 
-	// GENERATE BIBLE VERSES
-	// second most is Number 7 with 89 verses
-	for (let i = 0; i < 176; i++) {
-		const verseName = (i + 1).toString()
-		const options = { key: 'bible_verse', value: verseName }
+	// // GENERATE BIBLE VERSES
+	// // second most is Number 7 with 89 verses
+	// for (let i = 0; i < 176; i++) {
+	// 	const verseName = (i + 1).toString()
+	// 	const options = { key: 'bible_verse', value: verseName }
 
-		presetData['bible_verse_' + i] = {
-			category: 'Bible verses',
-			id: 'start_scripture',
-			name: `Select a Bible verse`,
-			text: verseName,
-			options: { value: '$(bible_book).$(bible_chapter).' + verseName },
-			feedback: { id: 'internal_variable', options },
-			extraActions: [{ actionId: 'set_self_variable', options }],
-		}
-	}
+	// 	presetData['bible_verse_' + i] = {
+	// 		category: 'Bible verses',
+	// 		id: 'start_scripture',
+	// 		name: `Select a Bible verse`,
+	// 		text: verseName,
+	// 		options: { value: '$(bible_book).$(bible_chapter).' + verseName },
+	// 		feedback: { id: 'internal_variable', options },
+	// 		extraActions: [{ actionId: 'set_self_variable', options }],
+	// 	}
+	// }
 
 	let presets = {}
 	Object.keys(presetData).forEach((id) => {
@@ -255,11 +256,31 @@ module.exports = function (self) {
 		presets[id] = preset
 	})
 
-	self.setPresetDefinitions(presets)
+	const presetStructure = []
+	const sectionMap = new Map()
+
+	for (const [id, preset] of Object.entries(presetData)) {
+		const category = preset.category || 'Common'
+		const sectionId = category
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '_')
+			.replace(/^_|_$/g, '')
+
+		let section = sectionMap.get(sectionId)
+		if (!section) {
+			section = { id: sectionId, name: category, definitions: [] }
+			sectionMap.set(sectionId, section)
+			presetStructure.push(section)
+		}
+
+		section.definitions.push(id)
+	}
+
+	self.setPresetDefinitions(presetStructure, presets)
 }
 
 const defaultPreset = {
-	type: 'button',
+	type: 'simple',
 	category: '',
 	name: '',
 	style: {
@@ -269,4 +290,5 @@ const defaultPreset = {
 		bgcolor: BlackColor,
 	},
 	steps: [{ down: [], up: [] }],
+	feedbacks: [],
 }

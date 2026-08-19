@@ -63,12 +63,15 @@ function addListeners(self) {
 
 			if (newVariables.length) {
 				self.initializedVariables.push(...newVariables)
-				self.setVariableDefinitions(self.initializedVariables)
+				const variableDefinitions = Object.fromEntries(
+					self.initializedVariables.map(({ variableId, name }) => [variableId, { name }]),
+				)
+				self.setVariableDefinitions(variableDefinitions)
 			}
 			self.setVariableValues(filteredValues)
 
 			self.variableData = filteredValues
-			self.checkFeedbacks()
+			self.checkAllFeedbacks()
 			return
 		}
 
@@ -87,7 +90,7 @@ function addListeners(self) {
 		}
 
 		console.log('Data received:', data)
-		self.checkFeedbacks()
+		self.checkAllFeedbacks()
 	})
 }
 

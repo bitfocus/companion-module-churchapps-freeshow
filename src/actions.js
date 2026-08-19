@@ -209,7 +209,7 @@ module.exports = function (self) {
 		if (action === 'set_self_variable') {
 			if (!data.key) return
 			self.internalVariable[data.key] = data.value
-			self.checkFeedbacks()
+			self.checkAllFeedbacks()
 			return
 		}
 

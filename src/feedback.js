@@ -3,6 +3,7 @@ const { resolveTimerStatus, isTimerInState } = require('./feedbackHelper')
 
 const WhiteColor = combineRgb(255, 255, 255)
 const GreenColor = combineRgb(5, 115, 50)
+const RedColor = combineRgb(100, 8, 8)
 
 module.exports = function (self) {
 	const feedbacks = {
@@ -64,10 +65,23 @@ module.exports = function (self) {
 			description: 'If one or more output windows are active',
 			defaultStyle: {
 				color: WhiteColor,
-				bgcolor: GreenColor,
+				bgcolor: RedColor,
 			},
 			callback: () => {
 				return self.variableData?.output_windows_active === 'true'
+			},
+		},
+		outputs_locked: {
+			type: 'boolean',
+			name: 'Outputs are locked',
+			description: 'If output locking is currently enabled',
+			defaultStyle: {
+				color: WhiteColor,
+				bgcolor: RedColor,
+			},
+			callback: () => {
+				const value = self.variableData?.outputs_locked
+				return value === true || String(value).toLowerCase() === 'true' || value === 1
 			},
 		},
 		log_song_usage_active: {

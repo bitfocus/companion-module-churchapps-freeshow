@@ -1,4 +1,4 @@
-const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
+const { InstanceBase, Regex, InstanceStatus } = require('@companion-module/base')
 const CreateClient = require('./src/connect')
 const InitActions = require('./src/actions')
 const InitPresets = require('./src/presets')
@@ -41,9 +41,9 @@ class ModuleInstance extends InstanceBase {
 
 		this.initWebSocket()
 		this.initActions()
+		this.initFeedback()
 		this.initPresets()
 		this.initVariables()
-		this.initFeedback()
 	}
 
 	async destroy() {
@@ -65,4 +65,4 @@ class ModuleInstance extends InstanceBase {
 	initFeedback = () => InitFeedback(this)
 }
 
-runEntrypoint(ModuleInstance, [])
+module.exports = ModuleInstance
