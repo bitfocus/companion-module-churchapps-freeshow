@@ -1,3 +1,4 @@
+const { InstanceStatus } = require('@companion-module/base')
 const io = require('socket.io-client')
 
 module.exports = function (self) {
@@ -26,10 +27,12 @@ module.exports = function (self) {
 function addListeners(self) {
 	self.socket.on('connect', () => {
 		self.log('info', 'Connected to FreeShow!')
+		self.updateStatus(InstanceStatus.Ok)
 		self.setVariableValues({ connection_status: 'Connected' })
 		// self.checkVariables();
 	})
 	self.socket.on('disconnect', () => {
+		self.updateStatus(InstanceStatus.Warning, 'Lost connection to WebSocket server')
 		self.setVariableValues({ connection_status: 'Disconnected' })
 		self.log('error', 'Lost connection.')
 	})

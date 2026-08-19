@@ -32,7 +32,7 @@ class ModuleInstance extends InstanceBase {
 	async init(config) {
 		this.config = config
 
-		this.updateStatus(InstanceStatus.Ok)
+		this.updateStatus(InstanceStatus.Warning, 'Could not connect to WebSocket server')
 
 		this.initializedVariables = []
 		this.internalVariable = {}
