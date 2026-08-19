@@ -206,11 +206,17 @@ module.exports = function (self) {
 		// custom message
 		if (action === 'custom_message') {
 			action = data.id
-			data = { ...JSON.parse(data.value || '{}'), action }
+			const jsonValue = typeof data.value === 'string' ? data.value : '{}'
+			try {
+				data = { ...JSON.parse(jsonValue), action }
+			} catch (error) {
+				self.log('error', `Invalid JSON in Custom API message: ${error.message}`)
+				return
+			}
 		}
 
 		// parse custom variable values
-		if (data.value?.includes('$(')) {
+		if (typeof data.value === 'string' && data.value.includes('$(')) {
 			data.value = replaceVariables(data.value, self.internalVariable)
 		}
 
@@ -223,8 +229,21 @@ module.exports = function (self) {
 		let options = Object.keys(event.options).length ? ` + ${JSON.stringify(event.options)}` : ''
 		console.log(`Sending action: ${action}${options}`)
 
-		self.send(data)
+		self.send(normalizePayloadValues(data))
 	}
+}
+
+function normalizePayloadValues(value) {
+	if (Array.isArray(value)) {
+		return value.map((item) => normalizePayloadValues(item))
+	}
+	if (value && typeof value === 'object') {
+		return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, normalizePayloadValues(item)]))
+	}
+	if (typeof value === 'number' || typeof value === 'boolean') {
+		return String(value)
+	}
+	return value
 }
 
 function replaceVariables(template, values) {
