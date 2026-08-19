@@ -1,4 +1,5 @@
 {
+	"type": "connection",
 	"id": "churchapps-freeshow",
 	"name": "churchapps-freeshow",
 	"shortname": "freeshow",
