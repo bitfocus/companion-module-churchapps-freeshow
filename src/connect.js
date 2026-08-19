@@ -29,6 +29,8 @@ function addListeners(self) {
 		self.log('info', 'Connected to FreeShow!')
 		self.updateStatus(InstanceStatus.Ok)
 		self.setVariableValues({ connection_status: 'Connected' })
+
+		self.requestActionValues?.()
 		// self.checkVariables();
 	})
 	self.socket.on('disconnect', () => {
@@ -67,6 +69,20 @@ function addListeners(self) {
 
 			self.variableData = filteredValues
 			self.checkFeedbacks()
+			return
+		}
+
+		if (data.action === 'get_actions') {
+			const actionsList = (data.data || []).map((item) => ({
+				id: String(item.id),
+				label: item.name || item.label || item.id,
+			}))
+
+			if (self.actionDefinitions?.run_action_options) {
+				const actionField = self.actionDefinitions.run_action_options.options.find((field) => field.id === 'action')
+				if (actionField) actionField.choices = actionsList
+				self.setActionDefinitions(self.actionDefinitions)
+			}
 			return
 		}
 

@@ -60,6 +60,13 @@ const variableInputs = [
 		],
 	},
 ]
+const actionOptions = {
+	id: 'action',
+	type: 'dropdown',
+	label: 'Action',
+	default: '',
+	choices: [],
+}
 const toggleOptions = [
 	{
 		type: 'dropdown',
@@ -148,6 +155,7 @@ module.exports = function (self) {
 		// ACTION
 		name_run_action: { name: 'Run action by name', description: 'Run an action from its name', options: [valueInput] },
 		run_action: { name: 'Run action by ID', description: 'Run an action from its ID', options: [idInput] },
+		run_action_options: { name: 'Run action', description: 'Run an action', options: [actionOptions] },
 
 		// OTHER
 		custom_message: {
@@ -182,7 +190,9 @@ module.exports = function (self) {
 		actions[id] = action
 	})
 
-	self.setActionDefinitions(actions)
+	self.actionDefinitions = actions
+	self.actionDefinitions.run_action_options.options = [actionOptions]
+	self.setActionDefinitions(self.actionDefinitions)
 
 	// BUTTON PRESS
 	function trigger(event) {
@@ -201,6 +211,14 @@ module.exports = function (self) {
 			self.internalVariable[data.key] = data.value
 			self.checkFeedbacks()
 			return
+		}
+
+		if (action === 'run_action_options') {
+			const selectedActionId = event.options?.action
+			if (!selectedActionId) return
+
+			data = { action: 'run_action', id: selectedActionId }
+			action = 'run_action'
 		}
 
 		// custom message

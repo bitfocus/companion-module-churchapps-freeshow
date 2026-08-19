@@ -37,6 +37,8 @@ class ModuleInstance extends InstanceBase {
 		this.initializedVariables = []
 		this.internalVariable = {}
 
+		this.requestActionValues = () => this.socket?.emit('data', JSON.stringify({ action: 'get_actions' }))
+
 		this.initWebSocket()
 		this.initActions()
 		this.initPresets()
