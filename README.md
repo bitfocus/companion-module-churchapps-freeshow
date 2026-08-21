@@ -4,7 +4,7 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 
 ## Changelog
 
-### [1.1.1] - 2026-08
+### [1.2.0] - 2026-08
 
 > FreeShow version >= 1.6.5 recommended
 
